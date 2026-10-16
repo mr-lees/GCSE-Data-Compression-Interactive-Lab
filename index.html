@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCSE Computer Science - Data Compression Interactive Lab</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            },
+            accent: {
+              blue: '#3b82f6',
+              purple: '#8b5cf6',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              cyan: '#06b6d4',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .grid-pixel {
+      transition: background-color 0.15s ease;
+    }
+    .tree-node {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    canvas {
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 selection:bg-brand-500 selection:text-slate-950">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-brand-500/10 border border-brand-500/30 rounded-lg text-brand-400">
+          <i class="fa-solid fa-file-zipper text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-brand-400 via-accent-cyan to-accent-blue bg-clip-text text-transparent">
+            Data Compression Lab
+          </h1>
+          <p class="text-xs text-slate-400">GCSE Computer Science Made Easy</p>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="hidden md:flex space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+        <button onclick="switchTab('image-lossy')" id="tab-image-lossy" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-brand-400 bg-slate-800 shadow">
+          <i class="fa-solid fa-image"></i><span>Lossy Picture</span>
+        </button>
+        <button onclick="switchTab('sound-lossy')" id="tab-sound-lossy" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-music"></i><span>Lossy Sound</span>
+        </button>
+        <button onclick="switchTab('rle-lossless')" id="tab-rle-lossless" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-bars-staggered"></i><span>RLE Lossless</span>
+        </button>
+        <button onclick="switchTab('huffman-lossless')" id="tab-huffman-lossless" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-sitemap"></i><span>Huffman Trees</span>
+        </button>
+        <button onclick="switchTab('quiz')" id="tab-quiz" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-graduation-cap"></i><span>Quiz (20 Qs)</span>
+        </button>
+        <button onclick="switchTab('revision')" id="tab-revision" class="nav-tab px-3 py-1.5 rounded-lg flex items-center space-x-2 text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-book-open"></i><span>Revision Notes</span>
+        </button>
+      </nav>
+
+      <!-- MOBILE MENU BUTTON -->
+      <div class="md:hidden">
+        <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- MOBILE NAVIGATION DROPDOWN -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-2">
+      <button onclick="switchTab('image-lossy'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded bg-slate-800 text-brand-400 flex items-center space-x-2">
+        <i class="fa-solid fa-image w-5"></i><span>Lossy Picture</span>
+      </button>
+      <button onclick="switchTab('sound-lossy'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded hover:bg-slate-800 text-slate-300 flex items-center space-x-2">
+        <i class="fa-solid fa-music w-5"></i><span>Lossy Sound</span>
+      </button>
+      <button onclick="switchTab('rle-lossless'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded hover:bg-slate-800 text-slate-300 flex items-center space-x-2">
+        <i class="fa-solid fa-bars-staggered w-5"></i><span>RLE Lossless</span>
+      </button>
+      <button onclick="switchTab('huffman-lossless'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded hover:bg-slate-800 text-slate-300 flex items-center space-x-2">
+        <i class="fa-solid fa-sitemap w-5"></i><span>Huffman Trees</span>
+      </button>
+      <button onclick="switchTab('quiz'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded hover:bg-slate-800 text-slate-300 flex items-center space-x-2">
+        <i class="fa-solid fa-graduation-cap w-5"></i><span>Quiz (20 Questions)</span>
+      </button>
+      <button onclick="switchTab('revision'); toggleMobileMenu();" class="w-full text-left px-3 py-2 rounded hover:bg-slate-800 text-slate-300 flex items-center space-x-2">
+        <i class="fa-solid fa-book-open w-5"></i><span>Revision Notes</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 overflow-y-auto">
+
+    <!-- ==================== SECTION 1: LOSSY IMAGE COMPRESSION ==================== -->
+    <section id="sec-image-lossy" class="tab-content block space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Lossy Method</span>
+          <h2 class="text-2xl font-bold mt-1 text-slate-100">Lossy Picture Compression</h2>
+          <p class="text-sm text-slate-400">See how lossy compression makes picture files smaller by throwing away tiny details your eyes can't easily spot.</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center space-x-4">
+          <div class="text-xs">
+            <span class="text-slate-500 block">Key Rule</span>
+            <span class="font-semibold text-brand-400">Permanently deletes data! You can never get it back.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- CONTROLS PANEL -->
+        <div class="lg:col-span-4 space-y-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+            <i class="fa-solid fa-sliders text-brand-400"></i>
+            <span>Compression Controls</span>
+          </h3>
+
+          <!-- QUALITY SLIDER -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <label class="font-medium text-slate-300">Picture Quality</label>
+              <span id="img-quality-val" class="font-mono text-brand-400 font-bold">100%</span>
+            </div>
+            <input type="range" id="img-quality-slider" min="1" max="100" value="100" oninput="updateImageCompression()"
+              class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500">
+            <div class="flex justify-between text-xs text-slate-500">
+              <span>1% (Tiny file, blurry image)</span>
+              <span>100% (Original image)</span>
+            </div>
+          </div>
+
+          <!-- COMPRESSION MODE SELECTION -->
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">How to shrink the picture</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setImageMode('jpeg')" id="btn-img-jpeg" class="px-3 py-2 text-xs font-medium rounded-lg border border-brand-500 bg-brand-500/10 text-brand-400">
+                Blur Fine Details (JPEG)
+              </button>
+              <button onclick="setImageMode('palette')" id="btn-img-palette" class="px-3 py-2 text-xs font-medium rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400 hover:border-slate-700">
+                Use Fewer Colors
+              </button>
+            </div>
+          </div>
+
+          <!-- IMAGE PRESET PICKER -->
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Choose a test picture</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="loadImagePreset('landscape')" class="p-2 border border-slate-800 hover:border-brand-500 rounded-lg text-center text-xs font-medium bg-slate-950">
+                Landscape
+              </button>
+              <button onclick="loadImagePreset('portrait')" class="p-2 border border-slate-800 hover:border-brand-500 rounded-lg text-center text-xs font-medium bg-slate-950">
+                Gradient
+              </button>
+              <button onclick="loadImagePreset('text')" class="p-2 border border-slate-800 hover:border-brand-500 rounded-lg text-center text-xs font-medium bg-slate-950">
+                Sharp Shapes
+              </button>
+            </div>
+          </div>
+
+          <!-- LIVE METRICS CARD -->
+          <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-3 font-mono text-xs">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+              <span class="text-slate-400">Original File Size:</span>
+              <span id="img-orig-bytes" class="text-slate-200">192.0 KB</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+              <span class="text-slate-400">New File Size:</span>
+              <span id="img-comp-bytes" class="text-brand-400 font-bold">192.0 KB</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+              <span class="text-slate-400">Compression Ratio:</span>
+              <span id="img-ratio" class="text-accent-cyan font-bold">1.0 : 1</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Saved Space:</span>
+              <span id="img-saved-pct" class="text-accent-purple font-bold">0.0%</span>
+            </div>
+          </div>
+
+          <!-- EXPLANATION CALLOUT -->
+          <div class="p-3 bg-brand-500/5 border border-brand-500/20 rounded-xl text-xs text-slate-300 space-y-1">
+            <p class="font-semibold text-brand-400 flex items-center gap-1">
+              <i class="fa-solid fa-lightbulb"></i> GCSE Exam Tip:
+            </p>
+            <p>Lossy picture compression (like JPEG) permanently removes extra data. Once you save the compressed file, the lost pixels are gone forever!</p>
+          </div>
+        </div>
+
+        <!-- VISUAL COMPARISON CANVAS AREA -->
+        <div class="lg:col-span-8 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- ORIGINAL CANVAS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+              <div class="w-full flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold text-slate-300">Original Picture</span>
+                <span class="text-xs font-mono text-slate-500">256 x 256 pixels</span>
+              </div>
+              <div class="relative w-full aspect-square bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
+                <canvas id="canvas-orig" width="256" height="256" class="w-full h-full object-contain"></canvas>
+              </div>
+            </div>
+
+            <!-- COMPRESSED CANVAS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+              <div class="w-full flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold text-brand-400 flex items-center gap-1">
+                  <i class="fa-solid fa-bolt"></i> Compressed Picture
+                </span>
+                <span id="img-compressed-label" class="text-xs font-mono text-slate-400">Quality: 100%</span>
+              </div>
+              <div class="relative w-full aspect-square bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
+                <canvas id="canvas-comp" width="256" height="256" class="w-full h-full object-contain"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- SIMPLE EXPLANATION CARD -->
+          <div id="img-artifact-explain" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs text-slate-300">
+            <h4 class="font-semibold text-brand-400 mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-magnifying-glass"></i> What is happening here?
+            </h4>
+            <p id="img-explanation-text">
+              At 100% quality, every pixel is kept. As you lower the quality slider, the computer starts deleting tiny background details and grouping similar colors together. This makes the file size much smaller!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 2: LOSSY SOUND COMPRESSION ==================== -->
+    <section id="sec-sound-lossy" class="tab-content hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Lossy Method</span>
+          <h2 class="text-2xl font-bold mt-1 text-slate-100">Lossy Sound Compression</h2>
+          <p class="text-sm text-slate-400">Learn how MP3 and audio files cut down file size by removing super high pitches and hidden quiet sounds.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- AUDIO CONTROLS -->
+        <div class="lg:col-span-4 space-y-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+            <i class="fa-solid fa-sliders text-accent-blue"></i>
+            <span>Sound Controls</span>
+          </h3>
+
+          <!-- PLAYBACK CONTROLS -->
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <label class="text-xs font-medium text-slate-400">Sound Generator</label>
+            <div class="flex gap-2">
+              <button id="btn-audio-play" onclick="toggleAudioPlayback()" class="flex-1 py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold rounded-lg flex items-center justify-center space-x-2 transition">
+                <i class="fa-solid fa-play"></i><span id="audio-btn-label">Play Sound</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-1 pt-1">
+              <button onclick="setAudioTone('melody')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] text-slate-300">Melody</button>
+              <button onclick="setAudioTone('chord')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] text-slate-300">Tone Wave</button>
+              <button onclick="setAudioTone('noise')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] text-slate-300">Noise</button>
+            </div>
+          </div>
+
+          <!-- SAMPLE RATE SLIDER -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <label class="font-medium text-slate-300">Sample Rate (Readings per second)</label>
+              <span id="audio-samplerate-val" class="font-mono text-accent-cyan font-bold">44,100 Hz</span>
+            </div>
+            <input type="range" id="audio-samplerate-slider" min="4000" max="44100" step="1000" value="44100" oninput="updateAudioCompression()"
+              class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-accent-cyan">
+            <p class="text-[11px] text-slate-500">Lower sample rates take fewer readings of the sound each second.</p>
+          </div>
+
+          <!-- BIT DEPTH SLIDER -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <label class="font-medium text-slate-300">Bit Depth (Accuracy per reading)</label>
+              <span id="audio-bitdepth-val" class="font-mono text-accent-purple font-bold">16-bit</span>
+            </div>
+            <input type="range" id="audio-bitdepth-slider" min="2" max="16" step="1" value="16" oninput="updateAudioCompression()"
+              class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-accent-purple">
+            <p class="text-[11px] text-slate-500">Fewer bits per sample mean a rougher sound wave.</p>
+          </div>
+
+          <!-- PSYCHOACOUSTIC FILTER TOGGLE -->
+          <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <div>
+              <span class="text-xs font-semibold text-slate-200 block">Remove Hidden Sounds</span>
+              <span class="text-[11px] text-slate-500">Delete quiet sounds masked by louder ones</span>
+            </div>
+            <input type="checkbox" id="audio-psycho-toggle" onchange="updateAudioCompression()" class="w-4 h-4 rounded accent-brand-500 cursor-pointer">
+          </div>
+
+          <!-- LIVE STATS -->
+          <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-2 font-mono text-xs">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Original Speed:</span>
+              <span id="audio-orig-kbps" class="text-slate-200">1,411 kbps</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Compressed Speed:</span>
+              <span id="audio-comp-kbps" class="text-accent-blue font-bold">1,411 kbps</span>
+            </div>
+            <div class="flex justify-between border-t border-slate-800 pt-2">
+              <span class="text-slate-400">Space Saved:</span>
+              <span id="audio-reduction" class="text-brand-400 font-bold">0% Saved</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISUALIZERS -->
+        <div class="lg:col-span-8 space-y-4">
+          <!-- WAVEFORM CANVAS -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-semibold text-slate-300">Sound Wave Shape</span>
+              <span id="audio-wave-status" class="text-xs font-mono text-slate-500">Smooth Wave</span>
+            </div>
+            <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden h-40">
+              <canvas id="canvas-audio-wave" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <!-- FREQUENCY SPECTRUM CANVAS -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-semibold text-slate-300">Pitches (Low to High Frequencies)</span>
+              <span class="text-xs font-mono text-slate-500">Bass → Treble</span>
+            </div>
+            <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden h-44">
+              <canvas id="canvas-audio-spec" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <!-- GCSE THEORY CARD -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs text-slate-300 space-y-2">
+            <h4 class="font-semibold text-accent-blue flex items-center gap-1">
+              <i class="fa-solid fa-graduation-cap"></i> How MP3 Files Save Space:
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] text-slate-400">
+              <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span class="font-semibold text-slate-200 block mb-1">1. Removing Super High Pitches</span>
+                Human ears can't hear super high frequencies. MP3 removes these frequencies completely to save space.
+              </div>
+              <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+                <span class="font-semibold text-slate-200 block mb-1">2. Deleting Masked Sounds</span>
+                If a loud drum plays at the exact same time as a quiet guitar, your brain can only hear the drum. MP3 deletes the hidden guitar sound!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 3: RLE LOSSLESS COMPRESSION ==================== -->
+    <section id="sec-rle-lossless" class="tab-content hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">Lossless Method</span>
+          <h2 class="text-2xl font-bold mt-1 text-slate-100">Run-Length Encoding (RLE)</h2>
+          <p class="text-sm text-slate-400">RLE groups repeated characters or pixels together into count pairs without losing any data at all!</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- RLE TEXT & PIXEL INPUT -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+              <i class="fa-solid fa-font text-brand-400"></i>
+              <span>Text RLE Encoder</span>
+            </h3>
+
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Type a string of letters:</label>
+              <input type="text" id="rle-text-input" value="AAAAABBBCCDAAAA" oninput="updateRLE()"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-brand-400 focus:outline-none focus:border-brand-500">
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs">
+              <button onclick="setRLEPreset('AAAAABBBCCDAAAA')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">Lots of Repeats</button>
+              <button onclick="setRLEPreset('WWWWWWWWBBBWWWWWWWW')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">Pixel Row</button>
+              <button onclick="setRLEPreset('ABCDEFGH')" class="px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded">No Repeats (Worst Case)</button>
+            </div>
+
+            <!-- STEP-BY-STEP RLE BREAKDOWN -->
+            <div class="space-y-2">
+              <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider">How RLE counts the letters:</label>
+              <div id="rle-tokens-container" class="flex flex-wrap gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 min-h-[50px] items-center">
+                <!-- JS Populated -->
+              </div>
+            </div>
+
+            <!-- ENCODED RESULT STRING -->
+            <div class="p-3 bg-brand-500/10 border border-brand-500/30 rounded-xl space-y-1">
+              <span class="text-xs text-slate-400">Compressed Result:</span>
+              <div id="rle-encoded-output" class="font-mono text-lg font-bold text-brand-400 break-all">5A3B2C1D4A</div>
+            </div>
+          </div>
+
+          <!-- BITMAP DRAWING GRID -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+                <i class="fa-solid fa-border-all text-accent-cyan"></i>
+                <span>Draw a Pixel Picture</span>
+              </h3>
+              <button onclick="clearRLEGrid()" class="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded">Clear Grid</button>
+            </div>
+            <p class="text-xs text-slate-400">Click squares to toggle between Black (B) and White (W) pixels.</p>
+
+            <div class="flex justify-center">
+              <div id="rle-grid" class="grid grid-cols-8 gap-1 p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                <!-- 64 pixels JS populated -->
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs text-slate-300">
+              <span class="text-slate-500 block mb-1">Grid Compressed RLE Stream:</span>
+              <span id="rle-grid-output" class="text-accent-cyan break-all">64W</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS & EDGE CASES -->
+        <div class="lg:col-span-6 space-y-6">
+          <!-- LIVE CALCULATOR CARD -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+              <i class="fa-solid fa-calculator text-accent-purple"></i>
+              <span>File Size Comparison</span>
+            </h3>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">Original Size</span>
+                <span id="rle-stat-orig-bytes" class="text-2xl font-bold font-mono text-slate-200 mt-1 block">15 Bytes</span>
+                <span class="text-[11px] text-slate-500">(1 byte per letter)</span>
+              </div>
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">RLE Compressed Size</span>
+                <span id="rle-stat-comp-bytes" class="text-2xl font-bold font-mono text-brand-400 mt-1 block">10 Bytes</span>
+                <span class="text-[11px] text-slate-500">(Count + Letter pairs)</span>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs font-mono">
+                <span class="text-slate-400">Space Saved:</span>
+                <span id="rle-stat-saved-pct" class="text-brand-400 font-bold">33.3%</span>
+              </div>
+              <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+                <div id="rle-progress-bar" class="bg-brand-500 h-full transition-all duration-300" style="width: 33.3%"></div>
+              </div>
+            </div>
+
+            <!-- WARNING BOX FOR WORST CASE -->
+            <div id="rle-warning-box" class="hidden p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 space-y-1">
+              <p class="font-bold flex items-center gap-1">
+                <i class="fa-solid fa-triangle-exclamation"></i> Warning: RLE Made the File Bigger!
+              </p>
+              <p>When characters don't repeat (like "ABCDEFGH"), storing counts actually doubles the file size from 8 bytes to 16 bytes! RLE only works well when data repeats a lot.</p>
+            </div>
+          </div>
+
+          <!-- GCSE SPEC EXPLANATION CARD -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs text-slate-300">
+            <h4 class="font-semibold text-brand-400 text-sm flex items-center gap-1">
+              <i class="fa-solid fa-book-bookmark"></i> Key Facts About RLE:
+            </h4>
+            <ul class="space-y-2 text-slate-400 list-disc list-inside">
+              <li><strong class="text-slate-200">Lossless:</strong> Zero data is lost. You can recreate the exact original text or image.</li>
+              <li><strong class="text-slate-200">How it works:</strong> Replaces repeated items with a count and the item (e.g., 5 'A's becomes "5A").</li>
+              <li><strong class="text-slate-200">Best for:</strong> Simple diagrams, black-and-white logos, or text with lots of repeated spaces.</li>
+              <li><strong class="text-slate-200">Worst for:</strong> Normal text or photos where neighboring pixels or letters keep changing.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 4: HUFFMAN CODING LOSSLESS ==================== -->
+    <section id="sec-huffman-lossless" class="tab-content hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">Lossless Method</span>
+          <h2 class="text-2xl font-bold mt-1 text-slate-100">Huffman Coding Trees</h2>
+          <p class="text-sm text-slate-400">Give popular letters short binary codes (like '0') and rare letters longer codes (like '1101') to save space.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- INPUT & TABLES -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+              <i class="fa-solid fa-i-cursor text-brand-400"></i>
+              <span>Type Your Word</span>
+            </h3>
+
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Type a word to encode:</label>
+              <input type="text" id="huffman-input" value="ABRACADABRA" oninput="updateHuffman()"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm font-mono text-brand-400 focus:outline-none focus:border-brand-500">
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs">
+              <button onclick="setHuffmanPreset('ABRACADABRA')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">ABRACADABRA</button>
+              <button onclick="setHuffmanPreset('BEEP BOOP')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">BEEP BOOP</button>
+              <button onclick="setHuffmanPreset('MISSISSIPPI')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">MISSISSIPPI</button>
+            </div>
+          </div>
+
+          <!-- FREQUENCY & HUFFMAN CODE TABLES -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+              <i class="fa-solid fa-table text-accent-cyan"></i>
+              <span>Generated Code Table</span>
+            </h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-400 font-mono">
+                    <th class="py-2 px-2">Letter</th>
+                    <th class="py-2 px-2">Count</th>
+                    <th class="py-2 px-2">Standard (8 bits)</th>
+                    <th class="py-2 px-2 text-brand-400">Huffman Bit Code</th>
+                  </tr>
+                </thead>
+                <tbody id="huffman-table-body" class="font-mono divide-y divide-slate-800/50">
+                  <!-- JS Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- COMPRESSION STATS CARD -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 font-mono text-xs">
+            <h4 class="font-semibold text-slate-200 font-sans border-b border-slate-800 pb-2">Space Savings</h4>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Original (8 bits per letter):</span>
+              <span id="huffman-orig-bits" class="text-slate-200">88 bits</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Huffman Compressed Stream:</span>
+              <span id="huffman-comp-bits" class="text-brand-400 font-bold">23 bits</span>
+            </div>
+            <div class="flex justify-between border-t border-slate-800 pt-2 text-sm">
+              <span class="text-slate-300 font-sans">Total Space Saved:</span>
+              <span id="huffman-saved-pct" class="text-accent-cyan font-bold">73.9%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TREE VISUALIZER & BITSTREAM -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+                <i class="fa-solid fa-sitemap text-accent-purple"></i>
+                <span>Huffman Binary Tree</span>
+              </h3>
+              <span class="text-xs text-slate-500 font-mono">Left branch = 0 • Right branch = 1</span>
+            </div>
+
+            <!-- SVG CANVAS FOR HUFFMAN TREE -->
+            <div class="bg-slate-950 rounded-xl border border-slate-800 p-2 overflow-x-auto min-h-[340px] flex items-center justify-center">
+              <svg id="huffman-tree-svg" width="100%" height="320" class="w-full max-w-full"></svg>
+            </div>
+          </div>
+
+          <!-- ENCODED BINARY OUTPUT COMPARE -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Comparing Binary Streams</h4>
+
+            <div class="space-y-2">
+              <div>
+                <span class="text-xs text-slate-400">1. Original Standard Stream (Every letter takes 8 bits):</span>
+                <div id="huffman-ascii-stream" class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-slate-500 break-all max-h-20 overflow-y-auto">
+                  010000010100001001010010...
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs text-brand-400 font-semibold">2. Compressed Huffman Stream (Frequent letters use fewer bits):</span>
+                <div id="huffman-compressed-stream" class="p-2.5 bg-slate-950 border border-brand-500/30 rounded-xl font-mono text-xs text-brand-400 font-bold break-all max-h-24 overflow-y-auto">
+                  01110100...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 5: KNOWLEDGE ASSESSMENT QUIZ ==================== -->
+    <section id="sec-quiz" class="tab-content hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-purple/10 text-accent-purple border border-accent-purple/20">Test Yourself</span>
+          <h2 class="text-2xl font-bold mt-1 text-slate-100">20-Question Compression Challenge</h2>
+          <p class="text-sm text-slate-400">Test your understanding with clear, pupil-friendly questions.</p>
+        </div>
+        <div id="quiz-badge" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs font-mono font-bold text-brand-400">
+          Score: <span id="quiz-score-badge">0</span> / 20
+        </div>
+      </div>
+
+      <!-- QUIZ CARD -->
+      <div id="quiz-container" class="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+        <!-- PROGRESS BAR -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs text-slate-400 font-mono">
+            <span id="quiz-progress-text">Question 1 of 20</span>
+            <span id="quiz-progress-pct">5%</span>
+          </div>
+          <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+            <div id="quiz-progress-bar" class="bg-brand-500 h-full transition-all duration-300" style="width: 5%"></div>
+          </div>
+        </div>
+
+        <!-- QUESTION TEXT -->
+        <div class="space-y-2">
+          <span id="quiz-category" class="text-xs font-semibold text-accent-cyan uppercase tracking-wider">Topic: Lossy vs Lossless</span>
+          <h3 id="quiz-question-text" class="text-lg font-semibold text-slate-100 leading-snug">
+            Which statement best describes lossy compression?
+          </h3>
+        </div>
+
+        <!-- OPTIONS -->
+        <div id="quiz-options-container" class="space-y-3">
+          <!-- JS Populated Option Buttons -->
+        </div>
+
+        <!-- EXPLANATION BOX -->
+        <div id="quiz-explanation-box" class="hidden p-4 rounded-xl border text-xs space-y-1 transition-all">
+          <p id="quiz-explanation-status" class="font-bold text-sm"></p>
+          <p id="quiz-explanation-text" class="text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <!-- FOOTER CONTROLS -->
+        <div class="flex justify-between items-center border-t border-slate-800 pt-4">
+          <button id="btn-quiz-prev" onclick="prevQuizQuestion()" disabled class="px-4 py-2 bg-slate-800 text-slate-400 rounded-xl text-xs font-semibold disabled:opacity-50">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Previous
+          </button>
+          <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-slate-950 rounded-xl text-xs font-bold transition">
+            Next Question <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- QUIZ RESULTS CARD -->
+      <div id="quiz-results-card" class="hidden max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-6">
+        <div class="w-20 h-20 rounded-full bg-brand-500/10 border border-brand-500/30 flex items-center justify-center mx-auto text-3xl text-brand-400">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-slate-100">Quiz Complete!</h3>
+          <p class="text-sm text-slate-400 mt-1">Here is how you did:</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 font-mono">
+          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-500 block">Total Score</span>
+            <span id="res-score" class="text-2xl font-bold text-brand-400 mt-1 block">18 / 20</span>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-500 block">Percentage</span>
+            <span id="res-pct" class="text-2xl font-bold text-accent-cyan mt-1 block">90%</span>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-500 block">Grade</span>
+            <span id="res-grade" class="text-2xl font-bold text-accent-purple mt-1 block">Grade 9</span>
+          </div>
+        </div>
+
+        <div id="res-feedback-text" class="text-xs text-slate-300 p-4 bg-slate-950 rounded-xl border border-slate-800">
+          Awesome effort! You really understand data compression.
+        </div>
+
+        <div class="flex justify-center gap-4">
+          <button onclick="resetQuiz()" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold rounded-xl text-xs transition">
+            Try Again
+          </button>
+          <button onclick="reviewQuizAnswers()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition">
+            Review Answers
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION 6: REVISION & CHEAT SHEET ==================== -->
+    <section id="sec-revision" class="tab-content hidden space-y-6">
+      <div class="border-b border-slate-800 pb-4">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">Cheat Sheet</span>
+        <h2 class="text-2xl font-bold mt-1 text-slate-100">Revision Notes & Summary</h2>
+        <p class="text-sm text-slate-400">Quick rules and key definitions to remember for exam questions.</p>
+      </div>
+
+      <!-- COMPARISON TABLE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <h3 class="text-base font-semibold text-slate-200 flex items-center space-x-2">
+          <i class="fa-solid fa-code-compare text-brand-400"></i>
+          <span>Lossy vs Lossless Side-by-Side</span>
+        </h3>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 bg-slate-950">
+                <th class="p-3">Feature</th>
+                <th class="p-3 text-rose-400">Lossy Compression</th>
+                <th class="p-3 text-brand-400">Lossless Compression</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td class="p-3 font-semibold text-slate-200">Deletes Data?</td>
+                <td class="p-3 text-rose-300">Yes! Deletes extra detail forever.</td>
+                <td class="p-3 text-brand-300">No! Zero data is deleted.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-200">File Size</td>
+                <td class="p-3">Makes files VERY small.</td>
+                <td class="p-3">Makes files moderately smaller.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-200">Can it be restored?</td>
+                <td class="p-3">No. The deleted details are gone.</td>
+                <td class="p-3">Yes. It restores perfectly back to 100%.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-200">File Formats</td>
+                <td class="p-3 font-mono text-slate-400">JPEG, MP3, MP4</td>
+                <td class="p-3 font-mono text-slate-400">PNG, GIF, WAV, ZIP, RLE</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-200">Best Used For</td>
+                <td class="p-3">Photos, music streaming, online video.</td>
+                <td class="p-3">Text files, computer programs, databases.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ALGORITHM CHEAT SHEETS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- RLE SUMMARY -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-500/10 text-brand-400 border border-brand-500/20 uppercase">Lossless Technique</span>
+          <h4 class="text-base font-bold text-slate-100">Run-Length Encoding (RLE)</h4>
+          <p class="text-xs text-slate-400">
+            RLE looks for <strong>repeating patterns</strong> and replaces them with a number and the item: <code class="text-brand-400 font-mono">[Count, Item]</code>.
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs space-y-1">
+            <div class="text-slate-500">Original: "AAAAABBCC" (9 letters)</div>
+            <div class="text-brand-400">RLE: "5A2B2C" (6 characters)</div>
+          </div>
+        </div>
+
+        <!-- HUFFMAN SUMMARY -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-accent-purple/10 text-accent-purple border border-accent-purple/20 uppercase">Lossless Technique</span>
+          <h4 class="text-base font-bold text-slate-100">Huffman Coding</h4>
+          <p class="text-xs text-slate-400">
+            Huffman coding gives <strong>popular letters short codes</strong> and <strong>rare letters longer codes</strong> to save total bits.
+          </p>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs space-y-1">
+            <div class="text-slate-500">Letter 'E' (Very Common) → Code: <span class="text-brand-400">0</span> (1 bit)</div>
+            <div class="text-slate-500">Letter 'Z' (Very Rare) → Code: <span class="text-accent-cyan">1101</span> (4 bits)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC BLOCK -->
+  <script>
+    /* ==========================================================================
+       1. GLOBAL STATE & NAVIGATION
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('text-brand-400', 'bg-slate-800', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('text-brand-400', 'bg-slate-800', 'shadow');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'image-lossy') updateImageCompression();
+      if (tabId === 'sound-lossy') updateAudioCompression();
+      if (tabId === 'rle-lossless') updateRLE();
+      if (tabId === 'huffman-lossless') updateHuffman();
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    /* ==========================================================================
+       2. LOSSY IMAGE COMPRESSION LOGIC
+       ========================================================================== */
+    let currentImgPreset = 'landscape';
+    let currentImgMode = 'jpeg'; 
+
+    function setImageMode(mode) {
+      currentImgMode = mode;
+      document.getElementById('btn-img-jpeg').className = mode === 'jpeg' ? 
+        'px-3 py-2 text-xs font-medium rounded-lg border border-brand-500 bg-brand-500/10 text-brand-400' : 
+        'px-3 py-2 text-xs font-medium rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400';
+      
+      document.getElementById('btn-img-palette').className = mode === 'palette' ? 
+        'px-3 py-2 text-xs font-medium rounded-lg border border-brand-500 bg-brand-500/10 text-brand-400' : 
+        'px-3 py-2 text-xs font-medium rounded-lg border border-slate-800 bg-slate-800/50 text-slate-400';
+
+      updateImageCompression();
+    }
+
+    function loadImagePreset(preset) {
+      currentImgPreset = preset;
+      drawOriginalImage();
+      updateImageCompression();
+    }
+
+    function drawOriginalImage() {
+      const canvas = document.getElementById('canvas-orig');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (currentImgPreset === 'landscape') {
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
+        skyGrad.addColorStop(0, '#0284c7');
+        skyGrad.addColorStop(1, '#38bdf8');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h * 0.6);
+
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(180, 50, 25, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.6);
+        ctx.lineTo(80, 70);
+        ctx.lineTo(160, h * 0.6);
+        ctx.fill();
+
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.moveTo(100, h * 0.6);
+        ctx.lineTo(200, 90);
+        ctx.lineTo(256, h * 0.6);
+        ctx.fill();
+
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(0, h * 0.6, w, h * 0.4);
+
+      } else if (currentImgPreset === 'portrait') {
+        const grad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w/2);
+        grad.addColorStop(0, '#ec4899');
+        grad.addColorStop(0.5, '#8b5cf6');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+      } else if (currentImgPreset === 'text') {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText('GCSE CS', 40, 80);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(30, 110, 100, 100);
+
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(150, 110, 80, 80);
+      }
+    }
+
+    function updateImageCompression() {
+      const quality = parseInt(document.getElementById('img-quality-slider').value);
+      document.getElementById('img-quality-val').innerText = `${quality}%`;
+      document.getElementById('img-compressed-label').innerText = `Quality: ${quality}%`;
+
+      const origCanvas = document.getElementById('canvas-orig');
+      const compCanvas = document.getElementById('canvas-comp');
+      const ctxComp = compCanvas.getContext('2d');
+      const w = origCanvas.width;
+      const h = origCanvas.height;
+
+      ctxComp.drawImage(origCanvas, 0, 0);
+
+      const imgData = ctxComp.getImageData(0, 0, w, h);
+      const data = imgData.data;
+
+      if (currentImgMode === 'jpeg') {
+        const blockSize = Math.max(1, Math.floor(1 + (100 - quality) / 6));
+        
+        for (let y = 0; y < h; y += blockSize) {
+          for (let x = 0; x < w; x += blockSize) {
+            const i = (y * w + x) * 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            for (let by = 0; by < blockSize && (y + by) < h; by++) {
+              for (let bx = 0; bx < blockSize && (x + bx) < w; bx++) {
+                const idx = ((y + by) * w + (x + bx)) * 4;
+                data[idx] = r;
+                data[idx + 1] = g;
+                data[idx + 2] = b;
+              }
+            }
+          }
+        }
+      } else {
+        const levels = Math.max(2, Math.floor((quality / 100) * 32));
+        const step = 256 / levels;
+
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = Math.floor(data[i] / step) * step;
+          data[i + 1] = Math.floor(data[i + 1] / step) * step;
+          data[i + 2] = Math.floor(data[i + 2] / step) * step;
+        }
+      }
+
+      ctxComp.putImageData(imgData, 0, 0);
+
+      const origBytes = 256 * 256 * 3; 
+      const ratioFactor = Math.pow(quality / 100, 1.3);
+      const compBytes = Math.max(3000, Math.floor(origBytes * (0.02 + 0.98 * ratioFactor)));
+
+      const ratio = (origBytes / compBytes).toFixed(1);
+      const savedPct = (((origBytes - compBytes) / origBytes) * 100).toFixed(1);
+
+      document.getElementById('img-orig-bytes').innerText = `${(origBytes / 1024).toFixed(1)} KB`;
+      document.getElementById('img-comp-bytes').innerText = `${(compBytes / 1024).toFixed(1)} KB`;
+      document.getElementById('img-ratio').innerText = `${ratio} : 1`;
+      document.getElementById('img-saved-pct').innerText = `${savedPct}%`;
+
+      const expText = document.getElementById('img-explanation-text');
+      if (quality < 30) {
+        expText.innerText = `High compression level (${quality}%). Lots of fine details were deleted, causing ${currentImgMode === 'jpeg' ? 'blocky squares' : 'color banding'} to show up.`;
+      } else if (quality < 70) {
+        expText.innerText = `Medium compression (${quality}%). Some hidden background details were deleted to save space, but the image still looks pretty clear.`;
+      } else {
+        expText.innerText = `High quality setting (${quality}%). Almost all details were kept, so the file size is nearly as big as the original.`;
+      }
+    }
+
+    /* ==========================================================================
+       3. LOSSY SOUND COMPRESSION LOGIC
+       ========================================================================== */
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let audioOsc = null;
+    let audioGain = null;
+    let audioAnimFrame = null;
+    let currentToneMode = 'melody';
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudioPlayback() {
+      initAudio();
+      if (isAudioPlaying) {
+        stopAudio();
+      } else {
+        startAudio();
+      }
+    }
+
+    function setAudioTone(mode) {
+      currentToneMode = mode;
+      if (isAudioPlaying) {
+        stopAudio();
+        startAudio();
+      }
+    }
+
+    function startAudio() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      isAudioPlaying = true;
+      document.getElementById('audio-btn-label').innerText = 'Stop Sound';
+      document.getElementById('btn-audio-play').className = 'flex-1 py-2.5 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg flex items-center justify-center space-x-2 transition';
+
+      audioOsc = audioCtx.createOscillator();
+      audioGain = audioCtx.createGain();
+      audioGain.gain.value = 0.15;
+
+      if (currentToneMode === 'melody') {
+        audioOsc.type = 'sawtooth';
+        audioOsc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      } else if (currentToneMode === 'chord') {
+        audioOsc.type = 'triangle';
+        audioOsc.frequency.setValueAtTime(329.63, audioCtx.currentTime);
+      } else {
+        audioOsc.type = 'square';
+        audioOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
+      }
+
+      audioOsc.connect(audioGain);
+      audioGain.connect(audioCtx.destination);
+      audioOsc.start();
+
+      drawAudioVisualizers();
+    }
+
+    function stopAudio() {
+      isAudioPlaying = false;
+      document.getElementById('audio-btn-label').innerText = 'Play Sound';
+      document.getElementById('btn-audio-play').className = 'flex-1 py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold rounded-lg flex items-center justify-center space-x-2 transition';
+
+      if (audioOsc) {
+        try { audioOsc.stop(); audioOsc.disconnect(); } catch (e) {}
+      }
+      if (audioAnimFrame) cancelAnimationFrame(audioAnimFrame);
+      drawStaticAudioVisualizers();
+    }
+
+    function updateAudioCompression() {
+      const sampleRate = parseInt(document.getElementById('audio-samplerate-slider').value);
+      const bitDepth = parseInt(document.getElementById('audio-bitdepth-slider').value);
+      const psycho = document.getElementById('audio-psycho-toggle').checked;
+
+      document.getElementById('audio-samplerate-val').innerText = `${sampleRate.toLocaleString()} Hz`;
+      document.getElementById('audio-bitdepth-val').innerText = `${bitDepth}-bit`;
+
+      let compBitrate = Math.floor((sampleRate * bitDepth) / 1000);
+      if (psycho) {
+        compBitrate = Math.floor(compBitrate * 0.65);
+      }
+
+      const origBitrate = 1411; 
+      const pctSaved = Math.max(0, Math.min(95, (((1411 - compBitrate) / 1411) * 100))).toFixed(1);
+
+      document.getElementById('audio-comp-kbps').innerText = `${compBitrate} kbps`;
+      document.getElementById('audio-reduction').innerText = `${pctSaved}% Saved`;
+
+      if (!isAudioPlaying) {
+        drawStaticAudioVisualizers();
+      }
+    }
+
+    function drawAudioVisualizers() {
+      if (!isAudioPlaying) return;
+
+      const sampleRate = parseInt(document.getElementById('audio-samplerate-slider').value);
+      const bitDepth = parseInt(document.getElementById('audio-bitdepth-slider').value);
+
+      const canvasW = document.getElementById('canvas-audio-wave');
+      const ctxW = canvasW.getContext('2d');
+      const w1 = canvasW.width = canvasW.clientWidth;
+      const h1 = canvasW.height = canvasW.clientHeight;
+
+      ctxW.fillStyle = '#020617';
+      ctxW.fillRect(0, 0, w1, h1);
+
+      ctxW.lineWidth = 2;
+      ctxW.strokeStyle = '#38bdf8';
+      ctxW.beginPath();
+
+      const sliceWidth = w1 / 100;
+      let x = 0;
+      const time = Date.now() * 0.005;
+
+      const steps = Math.pow(2, bitDepth);
+
+      for (let i = 0; i < 100; i++) {
+        let v = Math.sin(i * 0.15 + time);
+        v = Math.round((v + 1) / 2 * (steps - 1)) / (steps - 1) * 2 - 1;
+
+        const y = (v * h1 * 0.35) + h1 / 2;
+        if (i === 0) ctxW.moveTo(x, y);
+        else ctxW.lineTo(x, y);
+
+        x += sliceWidth;
+      }
+      ctxW.stroke();
+
+      const canvasS = document.getElementById('canvas-audio-spec');
+      const ctxS = canvasS.getContext('2d');
+      const w2 = canvasS.width = canvasS.clientWidth;
+      const h2 = canvasS.height = canvasS.clientHeight;
+
+      ctxS.fillStyle = '#020617';
+      ctxS.fillRect(0, 0, w2, h2);
+
+      const numBars = 32;
+      const barWidth = w2 / numBars;
+      const maxFreqCutoff = Math.floor((sampleRate / 44100) * numBars);
+
+      for (let i = 0; i < numBars; i++) {
+        let barHeight = 0;
+        if (i < maxFreqCutoff) {
+          barHeight = (Math.sin(i * 0.4 + time * 2) * 0.4 + 0.5) * h2 * 0.8;
+        }
+
+        ctxS.fillStyle = i < maxFreqCutoff ? '#22c55e' : '#334155';
+        ctxS.fillRect(i * barWidth, h2 - barHeight, barWidth - 2, barHeight);
+      }
+
+      audioAnimFrame = requestAnimationFrame(drawAudioVisualizers);
+    }
+
+    function drawStaticAudioVisualizers() {
+      const canvasW = document.getElementById('canvas-audio-wave');
+      const ctxW = canvasW.getContext('2d');
+      ctxW.fillStyle = '#020617';
+      ctxW.fillRect(0, 0, canvasW.clientWidth, canvasW.clientHeight);
+
+      const canvasS = document.getElementById('canvas-audio-spec');
+      const ctxS = canvasS.getContext('2d');
+      ctxS.fillStyle = '#020617';
+      ctxS.fillRect(0, 0, canvasS.clientWidth, canvasS.clientHeight);
+    }
+
+    /* ==========================================================================
+       4. RUN-LENGTH ENCODING (RLE) LOGIC
+       ========================================================================== */
+    let rleGridData = new Array(64).fill('W');
+
+    function initRLEGrid() {
+      const grid = document.getElementById('rle-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const cell = document.createElement('button');
+        cell.className = 'w-7 h-7 sm:w-8 sm:h-8 rounded border border-slate-800 grid-pixel transition-colors';
+        cell.style.backgroundColor = rleGridData[i] === 'B' ? '#0f172a' : '#f8fafc';
+        cell.onclick = () => toggleRLEPixel(i);
+        grid.appendChild(cell);
+      }
+      updateRLEGridOutput();
+    }
+
+    function toggleRLEPixel(idx) {
+      rleGridData[idx] = rleGridData[idx] === 'W' ? 'B' : 'W';
+      initRLEGrid();
+    }
+
+    function clearRLEGrid() {
+      rleGridData.fill('W');
+      initRLEGrid();
+    }
+
+    function setRLEPreset(str) {
+      document.getElementById('rle-text-input').value = str;
+      updateRLE();
+    }
+
+    function updateRLE() {
+      const input = document.getElementById('rle-text-input').value;
+      const tokensContainer = document.getElementById('rle-tokens-container');
+      tokensContainer.innerHTML = '';
+
+      if (!input) {
+        document.getElementById('rle-encoded-output').innerText = '';
+        return;
+      }
+
+      let encodedStr = '';
+      let tokens = [];
+      let count = 1;
+
+      for (let i = 0; i < input.length; i++) {
+        if (input[i] === input[i + 1]) {
+          count++;
+        } else {
+          tokens.push({ char: input[i], count: count });
+          encodedStr += `${count}${input[i]}`;
+          count = 1;
+        }
+      }
+
+      tokens.forEach(t => {
+        const badge = document.createElement('span');
+        badge.className = 'px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs font-mono text-brand-400 flex items-center space-x-1';
+        badge.innerHTML = `<span class="text-slate-400 font-bold">${t.count}</span><span class="text-white">${t.char}</span>`;
+        tokensContainer.appendChild(badge);
+      });
+
+      document.getElementById('rle-encoded-output').innerText = encodedStr;
+
+      const origBytes = input.length; 
+      const compBytes = tokens.length * 2; 
+
+      document.getElementById('rle-stat-orig-bytes').innerText = `${origBytes} Bytes`;
+      document.getElementById('rle-stat-comp-bytes').innerText = `${compBytes} Bytes`;
+
+      const savedPct = (((origBytes - compBytes) / origBytes) * 100).toFixed(1);
+      document.getElementById('rle-stat-saved-pct').innerText = `${savedPct}%`;
+
+      const pBar = document.getElementById('rle-progress-bar');
+      const warningBox = document.getElementById('rle-warning-box');
+
+      if (compBytes > origBytes) {
+        pBar.style.width = '0%';
+        pBar.className = 'bg-rose-500 h-full transition-all duration-300';
+        warningBox.classList.remove('hidden');
+      } else {
+        pBar.style.width = `${Math.max(5, savedPct)}%`;
+        pBar.className = 'bg-brand-500 h-full transition-all duration-300';
+        warningBox.classList.add('hidden');
+      }
+    }
+
+    function updateRLEGridOutput() {
+      let result = '';
+      let count = 1;
+      for (let i = 0; i < rleGridData.length; i++) {
+        if (rleGridData[i] === rleGridData[i + 1] && (i + 1) % 8 !== 0) {
+          count++;
+        } else {
+          result += `${count}${rleGridData[i]} `;
+          count = 1;
+        }
+      }
+      document.getElementById('rle-grid-output').innerText = result;
+    }
+
+    /* ==========================================================================
+       5. HUFFMAN CODING & TREE LOGIC
+       ========================================================================== */
+    function setHuffmanPreset(str) {
+      document.getElementById('huffman-input').value = str;
+      updateHuffman();
+    }
+
+    class HuffmanNode {
+      constructor(char, freq, left = null, right = null) {
+        this.char = char;
+        this.freq = freq;
+        this.left = left;
+        this.right = right;
+      }
+    }
+
+    function updateHuffman() {
+      const text = document.getElementById('huffman-input').value || 'ABRACADABRA';
+
+      const freqMap = {};
+      for (let char of text) {
+        freqMap[char] = (freqMap[char] || 0) + 1;
+      }
+
+      const nodes = Object.keys(freqMap).map(char => new HuffmanNode(char, freqMap[char]));
+
+      if (nodes.length === 0) return;
+
+      while (nodes.length > 1) {
+        nodes.sort((a, b) => a.freq - b.freq);
+        const left = nodes.shift();
+        const right = nodes.shift();
+        const parent = new HuffmanNode(null, left.freq + right.freq, left, right);
+        nodes.push(parent);
+      }
+
+      const root = nodes[0];
+
+      const codeMap = {};
+      function generateCodes(node, code = '') {
+        if (!node) return;
+        if (node.char !== null) {
+          codeMap[node.char] = code || '0';
+          return;
+        }
+        generateCodes(node.left, code + '0');
+        generateCodes(node.right, code + '1');
+      }
+      generateCodes(root);
+
+      const tbody = document.getElementById('huffman-table-body');
+      tbody.innerHTML = '';
+      Object.keys(freqMap).sort().forEach(char => {
+        const ascii = char.charCodeAt(0).toString(2).padStart(8, '0');
+        const hCode = codeMap[char];
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/30';
+        tr.innerHTML = `
+          <td class="py-2 px-2 font-bold text-white">'${char}'</td>
+          <td class="py-2 px-2 text-slate-300">${freqMap[char]}</td>
+          <td class="py-2 px-2 text-slate-500">${ascii}</td>
+          <td class="py-2 px-2 text-brand-400 font-bold">${hCode}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      let asciiStream = '';
+      let huffmanStream = '';
+      for (let char of text) {
+        asciiStream += char.charCodeAt(0).toString(2).padStart(8, '0');
+        huffmanStream += codeMap[char];
+      }
+
+      document.getElementById('huffman-ascii-stream').innerText = asciiStream;
+      document.getElementById('huffman-compressed-stream').innerText = huffmanStream;
+
+      const origBits = text.length * 8;
+      const compBits = huffmanStream.length;
+      const savedPct = (((origBits - compBits) / origBits) * 100).toFixed(1);
+
+      document.getElementById('huffman-orig-bits').innerText = `${origBits} bits`;
+      document.getElementById('huffman-comp-bits').innerText = `${compBits} bits`;
+      document.getElementById('huffman-saved-pct').innerText = `${savedPct}%`;
+
+      renderHuffmanSVG(root);
+    }
+
+    function renderHuffmanSVG(root) {
+      const svg = document.getElementById('huffman-tree-svg');
+      svg.innerHTML = '';
+
+      if (!root) return;
+
+      const width = svg.clientWidth || 500;
+
+      function drawNode(node, x, y, dx, level) {
+        if (!node) return;
+
+        if (node.left) {
+          const childX = x - dx;
+          const childY = y + 50;
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x); line.setAttribute('y1', y);
+          line.setAttribute('x2', childX); line.setAttribute('y2', childY);
+          line.setAttribute('stroke', '#475569'); line.setAttribute('stroke-width', '2');
+          svg.appendChild(line);
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', (x + childX) / 2 - 8); text.setAttribute('y', (y + childY) / 2);
+          text.setAttribute('fill', '#22c55e'); text.setAttribute('font-size', '11');
+          text.setAttribute('font-weight', 'bold');
+          text.textContent = '0';
+          svg.appendChild(text);
+
+          drawNode(node.left, childX, childY, dx * 0.5, level + 1);
+        }
+
+        if (node.right) {
+          const childX = x + dx;
+          const childY = y + 50;
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x); line.setAttribute('y1', y);
+          line.setAttribute('x2', childX); line.setAttribute('y2', childY);
+          line.setAttribute('stroke', '#475569'); line.setAttribute('stroke-width', '2');
+          svg.appendChild(line);
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', (x + childX) / 2 + 5); text.setAttribute('y', (y + childY) / 2);
+          text.setAttribute('fill', '#06b6d4'); text.setAttribute('font-size', '11');
+          text.setAttribute('font-weight', 'bold');
+          text.textContent = '1';
+          svg.appendChild(text);
+
+          drawNode(node.right, childX, childY, dx * 0.5, level + 1);
+        }
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+        circle.setAttribute('r', '16');
+        circle.setAttribute('fill', node.char ? '#16a34a' : '#1e293b');
+        circle.setAttribute('stroke', node.char ? '#4ade80' : '#334155');
+        circle.setAttribute('stroke-width', '2');
+        svg.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x); text.setAttribute('y', y + 4);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '10');
+        text.setAttribute('font-family', 'monospace');
+        text.textContent = node.char ? `'${node.char}'` : node.freq;
+        svg.appendChild(text);
+      }
+
+      drawNode(root, width / 2, 35, width / 4, 1);
+    }
+
+    /* ==========================================================================
+       6. SIMPLIFIED 20-QUESTION QUIZ
+       ========================================================================== */
+    const quizQuestions = [
+      {
+        cat: "Lossy vs Lossless",
+        q: "What happens when you use lossy compression on a file?",
+        options: [
+          "No data is lost at all.",
+          "Extra details are deleted permanently to make the file smaller.",
+          "The file is turned into an executable code file.",
+          "The original file gets twice as big."
+        ],
+        ans: 1,
+        exp: "Lossy compression permanently deletes extra data that your eyes or ears don't easily notice."
+      },
+      {
+        cat: "Run-Length Encoding",
+        q: "How would Run-Length Encoding (RLE) compress the string 'WWWWBBBWW'?",
+        options: ["3W3B2W", "4W3B2W", "4W3B2B", "W4B3W2"],
+        ans: 1,
+        exp: "There are 4 Ws, 3 Bs, then 2 Ws. So RLE writes this as 4W3B2W."
+      },
+      {
+        cat: "Huffman Coding",
+        q: "In a Huffman Tree, which letter gets the SHORTEST binary code?",
+        options: [
+          "The letter that appears LEAST often.",
+          "The letter that appears MOST often.",
+          "The first letter of the alphabet.",
+          "Every letter gets the exact same length code."
+        ],
+        ans: 1,
+        exp: "Frequently used letters get short codes (like '0') to save maximum space."
+      },
+      {
+        cat: "File Types",
+        q: "Which group lists ONLY lossy file formats?",
+        options: [
+          "PNG, WAV, ZIP",
+          "JPEG, MP3, MP4",
+          "GIF, FLAC, BMP",
+          "TXT, DOCX, RLE"
+        ],
+        ans: 1,
+        exp: "JPEG (pictures), MP3 (audio), and MP4 (video) are all lossy formats."
+      },
+      {
+        cat: "RLE Limitations",
+        q: "What happens if you run RLE on text with NO repeated letters like 'ABCDEFGH'?",
+        options: [
+          "The file gets 50% smaller.",
+          "The file stays the exact same size.",
+          "The file size INCREASES because count numbers are added.",
+          "The computer crashes."
+        ],
+        ans: 2,
+        exp: "Without repeated letters, RLE stores '1A1B1C1D1E1F1G1H', which doubles the original size!"
+      },
+      {
+        cat: "Lossless Compression",
+        q: "Why MUST computer software files (.exe) use lossless compression?",
+        options: [
+          "Code files are too large for lossy compression.",
+          "If even a single bit of computer code is deleted, the program will break or crash.",
+          "Lossless compression makes code files smaller than lossy does.",
+          "Lossy compression only works on text."
+        ],
+        ans: 1,
+        exp: "Code requires 100% accuracy. Deleting even 1 bit breaks the program."
+      },
+      {
+        cat: "Sound Compression",
+        q: "How do MP3 files use lossy compression to save space?",
+        options: [
+          "By speeding up the song.",
+          "By removing super high pitches and hidden quiet sounds.",
+          "By changing stereo sound into mono sound.",
+          "By scrambling the audio track."
+        ],
+        ans: 1,
+        exp: "MP3 removes sound details that human ears cannot easily hear."
+      },
+      {
+        cat: "Using Fewer Colors",
+        q: "What happens when you reduce the number of colors in a picture?",
+        options: [
+          "The picture gets extra pixels.",
+          "The file size gets smaller, but colors might look blocky or banded.",
+          "The image quality improves.",
+          "It turns into an MP3 file."
+        ],
+        ans: 1,
+        exp: "Using fewer colors means storing fewer bits per pixel, which shrinks the file size."
+      },
+      {
+        cat: "Space Saved",
+        q: "A file was 100 bits. Compression shrinks it to 40 bits. How much space was saved?",
+        options: ["40%", "60%", "20%", "80%"],
+        ans: 1,
+        exp: "100 - 40 = 60 bits removed, which is 60% space saved."
+      },
+      {
+        cat: "Compression Ratio",
+        q: "A photo drops from 50 MB down to 10 MB. What is the compression ratio?",
+        options: ["5 : 1", "10 : 1", "2 : 1", "50 : 1"],
+        ans: 0,
+        exp: "50 divided by 10 = 5. So the ratio is 5 : 1."
+      },
+      {
+        cat: "Sound Quality",
+        q: "Which settings produce the SMALLEST sound file size?",
+        options: [
+          "High sample rate, high bit depth",
+          "Medium sample rate, high bit depth",
+          "Low sample rate, low bit depth",
+          "High sample rate, low bit depth"
+        ],
+        ans: 2,
+        exp: "Taking fewer sound readings (low sample rate) with less detail (low bit depth) makes the smallest file."
+      },
+      {
+        cat: "JPEG Artifacts",
+        q: "What visual artifact shows up when a JPEG picture is compressed too much?",
+        options: [
+          "The colors turn upside down.",
+          "The picture looks blocky and pixelated with blurry squares.",
+          "The image turns into black and white text.",
+          "The screen flashes."
+        ],
+        ans: 1,
+        exp: "Over-compressed JPEGs break the picture into blurry 8x8 pixel square blocks."
+      },
+      {
+        cat: "Huffman Trees",
+        q: "In a Huffman binary tree, what numbers are usually placed on the left and right branches?",
+        options: ["0 on Left, 1 on Right", "1 on Left, 2 on Right", "A on Left, B on Right", "10 on Left, 20 on Right"],
+        ans: 0,
+        exp: "Going left adds a '0' bit and going right adds a '1' bit."
+      },
+      {
+        cat: "Streaming",
+        q: "Why is data compression important when watching videos on YouTube or Netflix?",
+        options: [
+          "It stops people from copying videos.",
+          "Smaller files stream faster with less buffering.",
+          "It makes the TV screen bigger.",
+          "It turns off the internet."
+        ],
+        ans: 1,
+        exp: "Compressed video files download quicker across the internet, preventing buffering pauses."
+      },
+      {
+        cat: "Lossless Audio",
+        q: "Which of these is a LOSSLESS audio format?",
+        options: ["MP3", "AAC", "FLAC", "OGG"],
+        ans: 2,
+        exp: "FLAC shrinks audio files without deleting any sound quality."
+      },
+      {
+        cat: "RLE Uses",
+        q: "Which picture is BEST suited for RLE compression?",
+        options: [
+          "A detailed photograph of a forest",
+          "A simple black-and-white logo with big blocks of plain color",
+          "A colourful portrait painting",
+          "A noisy camera picture"
+        ],
+        ans: 1,
+        exp: "RLE works best when there are big rows of identical pixels."
+      },
+      {
+        cat: "Binary Codes",
+        q: "Standard text uses 8 bits for every letter. How does Huffman coding save space?",
+        options: [
+          "By making all letters 16 bits long.",
+          "By using short bit codes for common letters and longer codes for rare letters.",
+          "By deleting all vowels.",
+          "By turning letters into numbers."
+        ],
+        ans: 1,
+        exp: "Huffman coding uses variable length codes based on how often letters repeat."
+      },
+      {
+        cat: "Decompressing Files",
+        q: "What extra key must be saved with a Huffman compressed file so it can be uncompressed later?",
+        options: [
+          "The user's email address",
+          "The Huffman tree or frequency table",
+          "The monitor size",
+          "The computer sound driver"
+        ],
+        ans: 1,
+        exp: "Without the frequency tree table, the computer cannot translate the bits back into letters."
+      },
+      {
+        cat: "ZIP Files",
+        q: "What type of compression is used when you create a .ZIP file?",
+        options: ["Lossy compression", "Lossless compression", "Photo compression", "Audio compression"],
+        ans: 1,
+        exp: "ZIP files use lossless compression so all saved files can be unpacked with zero data loss."
+      },
+      {
+        cat: "Exam Trade-offs",
+        q: "What is the main trade-off when choosing lossy compression instead of lossless?",
+        options: [
+          "You get a much smaller file, but permanently lose some original quality.",
+          "You get a larger file, but it opens faster.",
+          "You get perfect quality, but the file won't send.",
+          "There is no difference."
+        ],
+        ans: 0,
+        exp: "Lossy makes files tiny, but you sacrifice quality that can never be restored."
+      }
+    ];
+
+    let currentQuizIndex = 0;
+    let userQuizAnswers = new Array(quizQuestions.length).fill(null);
+
+    function renderQuizQuestion() {
+      const q = quizQuestions[currentQuizIndex];
+      document.getElementById('quiz-category').innerText = `Topic: ${q.cat}`;
+      document.getElementById('quiz-question-text').innerText = `${currentQuizIndex + 1}. ${q.q}`;
+
+      document.getElementById('quiz-progress-text').innerText = `Question ${currentQuizIndex + 1} of ${quizQuestions.length}`;
+      const pct = Math.round(((currentQuizIndex + 1) / quizQuestions.length) * 100);
+      document.getElementById('quiz-progress-pct').innerText = `${pct}%`;
+      document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
+
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = '';
+
+      q.options.forEach((optText, i) => {
+        const btn = document.createElement('button');
+        btn.className = getQuizOptionClass(i);
+        btn.onclick = () => selectQuizOption(i);
+        btn.innerHTML = `
+          <div class="flex items-center space-x-3 text-left">
+            <span class="w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-slate-400">${String.fromCharCode(65 + i)}</span>
+            <span class="text-xs sm:text-sm text-slate-200">${optText}</span>
+          </div>
+        `;
+        optionsContainer.appendChild(btn);
+      });
+
+      const expBox = document.getElementById('quiz-explanation-box');
+      if (userQuizAnswers[currentQuizIndex] !== null) {
+        expBox.classList.remove('hidden');
+        const isCorrect = userQuizAnswers[currentQuizIndex] === q.ans;
+        expBox.className = isCorrect ? 
+          'p-4 rounded-xl border bg-brand-500/10 border-brand-500/30 text-brand-300' : 
+          'p-4 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300';
+        
+        document.getElementById('quiz-explanation-status').innerText = isCorrect ? '✓ Correct!' : '✗ Not quite right';
+        document.getElementById('quiz-explanation-text').innerText = q.exp;
+      } else {
+        expBox.classList.add('hidden');
+      }
+
+      document.getElementById('btn-quiz-prev').disabled = currentQuizIndex === 0;
+      document.getElementById('btn-quiz-next').innerText = currentQuizIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question';
+    }
+
+    function getQuizOptionClass(optIndex) {
+      const selected = userQuizAnswers[currentQuizIndex];
+      const correct = quizQuestions[currentQuizIndex].ans;
+
+      if (selected === null) {
+        return 'w-full p-3.5 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition text-left';
+      }
+
+      if (optIndex === correct) {
+        return 'w-full p-3.5 bg-brand-500/20 border-2 border-brand-500 rounded-xl text-left font-semibold text-brand-300';
+      }
+
+      if (selected === optIndex && selected !== correct) {
+        return 'w-full p-3.5 bg-rose-500/20 border-2 border-rose-500 rounded-xl text-left font-semibold text-rose-300';
+      }
+
+      return 'w-full p-3.5 bg-slate-950 border border-slate-800/50 rounded-xl opacity-50 text-left';
+    }
+
+    function selectQuizOption(index) {
+      if (userQuizAnswers[currentQuizIndex] !== null) return;
+      userQuizAnswers[currentQuizIndex] = index;
+
+      calculateQuizScore();
+      renderQuizQuestion();
+    }
+
+    function calculateQuizScore() {
+      let score = 0;
+      userQuizAnswers.forEach((ans, i) => {
+        if (ans === quizQuestions[i].ans) score++;
+      });
+      document.getElementById('quiz-score-badge').innerText = score;
+      return score;
+    }
+
+    function prevQuizQuestion() {
+      if (currentQuizIndex > 0) {
+        currentQuizIndex--;
+        renderQuizQuestion();
+      }
+    }
+
+    function nextQuizQuestion() {
+      if (currentQuizIndex < quizQuestions.length - 1) {
+        currentQuizIndex++;
+        renderQuizQuestion();
+      } else {
+        showQuizResults();
+      }
+    }
+
+    function showQuizResults() {
+      document.getElementById('quiz-container').classList.add('hidden');
+      const resCard = document.getElementById('quiz-results-card');
+      resCard.classList.remove('hidden');
+
+      const score = calculateQuizScore();
+      const pct = Math.round((score / quizQuestions.length) * 100);
+
+      document.getElementById('res-score').innerText = `${score} / ${quizQuestions.length}`;
+      document.getElementById('res-pct').innerText = `${pct}%`;
+
+      let grade = 'Grade 3';
+      let feedback = 'Keep going! Re-read the interactive tabs to learn more about compression.';
+
+      if (pct >= 90) {
+        grade = 'Grade 9';
+        feedback = 'Fantastic score! You have mastered data compression concepts.';
+      } else if (pct >= 75) {
+        grade = 'Grade 7-8';
+        feedback = 'Great job! You have a really strong understanding of data compression.';
+      } else if (pct >= 60) {
+        grade = 'Grade 5-6';
+        feedback = 'Good effort! Try reviewing Huffman coding and RLE worst-case scenarios.';
+      }
+
+      document.getElementById('res-grade').innerText = grade;
+      document.getElementById('res-feedback-text').innerText = feedback;
+    }
+
+    function resetQuiz() {
+      currentQuizIndex = 0;
+      userQuizAnswers.fill(null);
+      document.getElementById('quiz-score-badge').innerText = '0';
+      document.getElementById('quiz-results-card').classList.add('hidden');
+      document.getElementById('quiz-container').classList.remove('hidden');
+      renderQuizQuestion();
+    }
+
+    function reviewQuizAnswers() {
+      document.getElementById('quiz-results-card').classList.add('hidden');
+      document.getElementById('quiz-container').classList.remove('hidden');
+      currentQuizIndex = 0;
+      renderQuizQuestion();
+    }
+
+    /* ==========================================================================
+       7. INITIALIZATION
+       ========================================================================== */
+    window.onload = function() {
+      drawOriginalImage();
+      updateImageCompression();
+
+      drawStaticAudioVisualizers();
+      updateAudioCompression();
+
+      initRLEGrid();
+      updateRLE();
+
+      updateHuffman();
+
+      renderQuizQuestion();
+    };
+  </script>
+</body>
+</html>
